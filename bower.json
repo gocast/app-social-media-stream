@@ -1,0 +1,33 @@
+{
+  "name": "app-social-media-stream",
+  "main": "app-social-media-stream.html",
+  "dependencies": {
+    "analog-clock": "git@github.com:sharedlabs/analog-clock.git#^0.1.3",
+    "app-localize-mixin": "git@github.com:sharedlabs/app-localize-mixin.git#^1.0.1",
+    "fitted-text": "git@github.com:sharedlabs/fitted-text.git#^0.2.0",
+    "goc-apps": "git@github.com:gocast/goc-apps.git",
+    "goc-icons": "git@github.com:gocast/goc-icons.git",
+    "goc-styles": "git@github.com:gocast/goc-styles.git#^0.1.0",
+    "iron-selector": "PolymerElements/iron-selector#2.0-preview",
+    "moment-import": "git@github.com:sharedlabs/moment-import.git#^0.1.0",
+    "paper-spinner": "PolymerElements/paper-spinner#2.0-preview",
+    "paper-toggle-button": "PolymerElements/paper-toggle-button#2.0-preview",
+    "polymer": "git@github.com:Polymer/polymer#v2.0.0-rc.2",
+    "touch-item": "git@github.com:sharedlabs/touch-item.git#^0.1.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#2.0-preview",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+  },
+  "resolutions": {
+    "polymer": "v2.0.0-rc.2",
+    "iron-selector": "2.0-preview",
+    "webcomponentsjs": "v1",
+    "paper-styles": "2.0-preview",
+    "iron-flex-layout": "2.0-preview",
+    "iron-iconset-svg": "2.0-preview",
+    "iron-icon": "2.0-preview",
+    "iron-meta": "2.0-preview"
+  }
+}

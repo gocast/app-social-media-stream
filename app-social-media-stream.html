@@ -1,0 +1,420 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../app-localize-mixin/app-localize-mixin.html">
+<link rel="import" href="../goc-styles/goc-styles.html">
+<link rel="import" href="../goc-icons/goc-icons.html">
+<link rel="import" href="../touch-item/touch-item.html">
+<link rel="import" href="../iron-selector/iron-selector.html">
+<link rel="import" href="../goc-apps/goc-apps-collection.html">
+<link rel="import" href="../goc-apps/goc-app-icon.html">
+<link rel="import" href="../paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="app-social-media-stream-player.html">
+
+<!--
+`app-social-media-stream`
+
+@demo demo/index.html
+-->
+<dom-module id="app-social-media-stream">
+  <template>
+    <style include="header-layout-styles btn-styles icon-btn-styles box-styles form-styles tabs-styles">
+      :host {
+        background: var(--goc-background-color);
+        height: 100%;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 26px;
+      }
+
+      .col {
+        margin-bottom: 30px;
+      }
+
+      @media(min-width: 640px) {
+        .row {
+          @apply --layout-horizontal;
+          margin-bottom: 20px;
+        }
+
+        .col {
+          @apply --layout-flex;
+          margin-bottom: 0;
+          margin-right: 30px;
+        }
+
+        .col--last {
+          margin-right: 0;
+        }
+      }
+
+      /* preview */
+      .preview-container {
+        border-radius: 3px;
+        border: 1px solid var(--paper-grey-400);
+        box-sizing: border-box;
+        height: 322px;
+      }
+
+      @media(max-width: 640px) {
+        .preview-container {
+          border-left: none;
+          border-radius: 0;
+          border-right: none;
+        }
+      }
+
+      .pages > :not(.iron-selected) {
+        display: none !important;
+      }
+
+      app-social-media-stream-player {
+        height: 100%;
+        width: 100%;
+      }
+
+      paper-toggle-button {
+        margin-left: 10px;
+      }
+
+      @media (min-width: 640px) {
+        .form__label {
+          min-width: 220px;
+        }
+      }
+
+      .form__label__subtitle {
+        color: #888;
+        font-size: 12px;
+      }
+    </style>
+
+    <goc-apps-collection
+        app-name="social-media-stream"
+        item="{{appInfo}}"
+        language="[[language]]"></goc-apps-collection>
+
+    <div class="header-layout">
+      <div class="header-layout__header">
+        <div class="header-toolbar">
+          <button class="icon-btn icon-btn--primary" on-click="_onBackClicked" title="Back">
+            <touch-item><iron-icon icon="arrow-back"></iron-icon></touch-item>
+          </button>
+
+          <goc-app-icon size="small" app-name="social-media-stream"></goc-app-icon>
+
+          <div class="header-toolbar__main-content">
+            <div class="header-toolbar__title">[[contentName]]</div>
+            <div class="header-toolbar__subtitle">[[appInfo.displayName]]</div>
+          </div>
+
+          <paper-spinner-lite class="header-toolbar__spinner" active="[[loading]]"></paper-spinner-lite>
+
+          <button class="btn btn--primary" disabled="{{_isDataSaved}}">
+            <touch-item>Guardar cambios</touch-item>
+          </button>
+        </div>
+      </div>
+
+      <!-- <dom-if if="[[_appVisible]]"> -->
+        <!-- <template> -->
+
+      <div class="header-layout__content">
+        <div class="row">
+          <h1>Configuración</h1>
+        </div>
+
+        <div class="row">
+
+          <div class="col">
+            <div class="preview-container" style$="[[_computePreviewBackground(data.backgroundColor)]]">
+              <app-social-media-stream-player data="[[data]]"></app-social-media-stream-player>
+            </div>
+          </div>
+
+          <div class="col col--last">
+            <div class="box">
+              <iron-selector
+                  class="box__tabs"
+                  selected="{{selectedTab}}"
+                  attr-for-selected="name"
+                  selected-class="box__tab-item--selected">
+                  <touch-item
+                      name="twitter"
+                      class="box__tab-item">[[localize('TabMenu.Twitter')]]</touch-item>
+                  <touch-item
+                      name="style"
+                      class="box__tab-item">[[localize('TabMenu.Style')]]</touch-item>
+              </iron-selector>
+
+
+              <iron-selector
+                  class="pages"
+                  selected="{{selectedTab}}"
+                  attr-for-selected="name">
+
+                <div class="form" name="twitter">
+                  <p>
+                    Filtra por @usuario, #hashtag o texto
+                  </p>
+
+                  <div class="form__item form__item--last">
+                    <div class="form__label">Buśqueda</div>
+
+                    <input
+                        name="search"
+                        class="form__input"
+                        value="[[data.twitter.search]]"
+                        placeholder="Texto de búsqueda">
+                  </div>
+
+                  <button class="btn btn--primary" disabled="{{!_canUpdateSearch}}" on-click="_updateSearch">
+                    <touch-item>Actualizar</touch-item>
+                  </button>
+                </div>
+
+                <div class="form" name="style">
+
+                  <div class="form__item">
+                    <div class="form__label">Mostrar texto de búsqueda</div>
+                    <paper-toggle-button
+                        on-change="_updateContent"
+                        checked="{{data.showDate}}"
+                        disabled="[[!data.showDigitalClock]]"></paper-toggle-button>
+                  </div>
+
+                  <div class="form__item">
+                    <div class="form__label">Mostrar cada elemento durante</div>
+                    <input
+                        name="color"
+                        class="form__input"
+                        value="[[data.color]]"
+                        on-keyup="_colorChanged"
+                        placeholder$="[[localize('Style.Color.Placeholder')]]">
+                    <span>segundos</span>
+                  </div>
+
+                  <div class="form__item">
+                    <div class="form__label">Utilizar siempre los ultimos</div>
+                    <input
+                        name="color"
+                        class="form__input"
+                        value="[[data.color]]"
+                        on-keyup="_colorChanged"
+                        placeholder$="[[localize('Style.Color.Placeholder')]]">
+                    <span>elementos</span>
+                  </div>
+
+                  <div class="form__item">
+                    <div class="form__label">Mostrar la foto del usuario</div>
+                    <paper-toggle-button
+                        on-change="_updateContent"
+                        checked="{{data.showDate}}"
+                        disabled="[[!data.showDigitalClock]]"></paper-toggle-button>
+                  </div>
+
+                  <div class="form__item">
+                    <div class="form__label">Mostrar la fecha</div>
+                    <paper-toggle-button
+                        on-change="_updateContent"
+                        checked="{{data.showDate}}"
+                        disabled="[[!data.showDigitalClock]]"></paper-toggle-button>
+                  </div>
+
+                  <div class="form__item">
+                    <div class="form__label">Mostrar las imágenes</div>
+                    <paper-toggle-button
+                        on-change="_updateContent"
+                        checked="{{data.showDate}}"
+                        disabled="[[!data.showDigitalClock]]"></paper-toggle-button>
+                  </div>
+
+                  <div class="form__item">
+                    <div class="form__label">Color de fondo</div>
+                    <paper-toggle-button
+                        on-change="_updateContent"
+                        checked="{{data.showDate}}"
+                        disabled="[[!data.showDigitalClock]]"></paper-toggle-button>
+                  </div>
+
+                  <div class="form__item">
+                    <div class="form__label">Color del texto</div>
+                    <paper-toggle-button
+                        on-change="_updateContent"
+                        checked="{{data.showDate}}"
+                        disabled="[[!data.showDigitalClock]]"></paper-toggle-button>
+                  </div>
+
+                </div>
+
+              </iron-selector>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <h1>Cola de entradas</h1>
+        </div>
+      </div>
+
+        <!-- </template> -->
+      <!-- </dom-if> -->
+
+    </div>
+  </template>
+
+  <script>
+
+    class AppInstagramWall extends AppLocalizeMixin(Polymer.Element) {
+
+      static get is() {return 'app-social-media-stream';}
+
+      static get properties() {
+        return {
+          _defaultData: {
+            type: Object,
+            value: _ => {
+              return {
+                twitter: {
+                  search: '',
+                }
+              };
+            },
+          },
+
+          data: Object,
+
+          contentName: String,
+
+          contentId: String,
+
+          visible: Boolean,
+
+          loading: Boolean,
+
+          /**
+           * True when data has been loaded and element is visible.
+           * @type {Boolean}
+           */
+          _appVisible: {
+            type: Boolean,
+            value: false,
+            computed: '_computeAppVisible(visible, data)',
+            observer: '_appVisibleChanged',
+          },
+
+          /**
+           * Data has been updated and have pending changes
+           */
+          _isDataSaved: {
+            type: Boolean,
+            value: true,
+          },
+
+          /**
+           * Prevent user from changen search too often. We have a rate limit.
+           * @type {Boolean}
+           */
+          _canUpdateSearch: {
+            type: Boolean,
+            value: true,
+          },
+
+          language: {
+            type: String,
+            value: _ => {
+              return 'en'
+            }
+          },
+
+          resources: {
+            type: Object,
+            value: _ => {
+              return {
+                "en": {
+                  "TabMenu.Twitter": "Twitter",
+                  "TabMenu.Style": "View style",
+                },
+                "es": {
+                  "TabMenu.Twitter": "Twitter",
+                  "TabMenu.Style": "Opciones de visualización",
+                }
+              };
+            }
+          },
+        };
+      }
+
+      static get observers() {
+        return [
+          '_dataChanged(data, visible)',
+        ];
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+      }
+
+      _dataChanged(data, visible) {
+        if (!visible) {return;}
+
+        // Initialize data.
+        if (data === null) {
+          this.data = Object.assign({}, this._defaultData);
+        }
+      }
+
+      _appVisibleChanged(_appVisible) {
+        if (_appVisible) {
+          // workaround - property default is removed otherwise
+          requestAnimationFrame(_ => this.selectedTab = 'twitter');
+        }
+      }
+
+      _onBackClicked() {
+        this.dispatchEvent(new CustomEvent('close-app', {
+          bubbles: true,
+          composed: true
+        }));
+      }
+
+      _updateSearch() {
+        const {value} = this.shadowRoot.querySelector('input[name=search]');
+        if (value !== this.data.twitter.search) {
+          this.set('data.twitter.search', value);
+          this._isDataSaved = false;
+          // Prevent user from changing search too often (rate limit)
+          this._canUpdateSearch = false;
+          setTimeout(_ => this._canUpdateSearch = true, 5000);
+        }
+      }
+
+      _updateContent() {
+        this.dispatchEvent(new CustomEvent('content-update', {
+          composed: true,
+          detail: {
+            data: this.data,
+            contentId: this.contentId,
+            updateRelease: true
+          }
+        }));
+      }
+
+      _computeAppVisible(visible, data) {
+        return data && visible;
+      }
+
+      _computePreviewBackground(backgroundColor) {
+        if (backgroundColor) {
+          return `background: ${backgroundColor}`;
+        }
+        return `background: linear-gradient(to right, rgba(0,0,0,0), transparent), url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAADNJREFUOBFjvHHjxn8GPEBDQ4MRjzQDEz5JYuRGDWAYBIGIN45B0UgonYxG42CIRopjAQAbjQemQaw2YQAAAABJRU5ErkJggg==')`;
+      }
+
+    }
+
+    customElements.define(AppInstagramWall.is, AppInstagramWall);
+
+  </script>
+</dom-module>

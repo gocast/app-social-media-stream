@@ -1,0 +1,142 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../moment-import/moment-with-locales.html">
+<link rel="import" href="../moment-import/moment-timezone.html">
+<link rel="import" href="../analog-clock/analog-clock.html">
+<link rel="import" href="../fitted-text/fitted-text.html">
+
+<dom-module id="app-social-media-stream-player">
+  <template>
+    <style>
+      :host {
+        box-sizing: border-box;
+        display: inline-block;
+        contain: strict;
+        overflow: hidden;
+        @apply --layout-vertical;
+        @apply --layout-center-center;
+      }
+    </style>
+
+    <goc-socket
+        identity-id={{_identityId}}
+        connected="{{_socketConnected}}"
+        on-message-received="{{_onMessageReceived}}"
+        signal-name="gocast"
+        subscriptions="[[_socketSubscription]]"></goc-socket>
+
+  </template>
+  <script>
+
+    class AppInstagramWallPlayer extends Polymer.Element {
+
+      static get is() {return 'app-social-media-stream-player';}
+
+      static get properties() {
+        return {
+          _defaultData: {
+            type: Object,
+            value: _ => {
+              return {
+                twitter: {
+                  search: '',
+                }
+              };
+            },
+          },
+
+          data: Object,
+
+          _socketSubscription: {
+            type: Array,
+            value: _ => [],
+          },
+
+          _socketConnected: {
+            type: Boolean,
+          },
+
+          _identityId: String,
+
+          // instagramClientId: {
+          //   type: String,
+          //   value: '0672142f1092443eb197714804553f05',
+          // },
+        };
+      }
+
+      static get observers() {
+        return [
+          '_dataChanged(data.*)',
+          '_twitterSearchChanged(data.twitter.search, socketConnected)',
+        ]
+      }
+
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+      }
+
+      _onMessageReceived(event) {
+        console.group('MESSAGE RECEIVED');
+        console.log(event);
+        console.groupEnd();
+        const {data, topic} = event.detail;
+      }
+
+      _twitterSearchChanged(search, socketConnected) {
+        if (search && socketConnected) {
+          let type;
+          let value;
+
+          switch(search.charAt(0)) {
+            case '#':
+              type = 'hash';
+              value = search.slice(1);
+            break;
+            case '@':
+              type = 'follow';
+              value = search.slice(1);
+            break;
+            default:
+              type = 'query';
+              value = search;
+          }
+
+          this._socketSubscription = [
+            `stream/twitter/${type}/${value}`,
+            `${this._identityId}/stream/twitter/${type}/${value}`,
+            `presence/stream/twitter`,
+          ];
+        }
+      }
+
+      _dataChanged(changes) {
+        if (changes.path === 'data') {
+          if (!changes.value) {
+            this.data = Object.assign({}, this._defaultData);
+          }
+        } else {
+          this.notifyPath(changes.path);
+        }
+      }
+
+      // _onInstagramLoginTapped() {
+      //   const redirectUri = `${location.href}?test=1`;
+      //   const href = `https://api.instagram.com/oauth/authorize/?client_id=${this.instagramClientId}&type=web_server&response_type=code&scope=public_content&redirect_uri=${redirectUri}`;
+      //   location.href = href;
+      // }
+
+    }
+
+    customElements.define(AppInstagramWallPlayer.is, AppInstagramWallPlayer);
+
+  </script>
+</dom-module>
+
