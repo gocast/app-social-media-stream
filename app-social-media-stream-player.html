@@ -18,11 +18,16 @@
     </style>
 
     <goc-socket
+        id="socket"
         identity-id={{_identityId}}
         connected="{{_socketConnected}}"
-        on-message-received="{{_onMessageReceived}}"
+        on-message-received="_onMessageReceived"
         signal-name="gocast"
         subscriptions="[[_socketSubscription]]"></goc-socket>
+
+    <div id="container">
+      
+    </div>
 
   </template>
   <script>
@@ -46,6 +51,15 @@
 
           data: Object,
 
+          _socialItems: {
+            type: Array,
+            value: _ => [],
+          },
+
+          _currentItemIndex: {
+            type: Number,
+          },
+
           _socketSubscription: {
             type: Array,
             value: _ => [],
@@ -67,16 +81,18 @@
       static get observers() {
         return [
           '_dataChanged(data.*)',
-          '_twitterSearchChanged(data.twitter.search, socketConnected)',
+          '_twitterSearchChanged(data.twitter.search, _socketConnected)',
         ]
       }
 
       constructor() {
         super();
+        this._nextTweet = this._nextTweet.bind(this);
       }
 
       connectedCallback() {
         super.connectedCallback();
+        setInterval(this._nextTweet, 4000);
       }
 
       disconnectedCallback() {
@@ -84,14 +100,48 @@
       }
 
       _onMessageReceived(event) {
-        console.group('MESSAGE RECEIVED');
-        console.log(event);
-        console.groupEnd();
         const {data, topic} = event.detail;
+        console.log('MESSAGE_RECEIVED', {data, topic})
+
+        // backend requested presence notification
+        if (topic === 'presence/stream/twitter') {
+          this._notifyPresence();
+        }
+
+        if (topic.match(/stream\/twitter\/.*/)) {
+          for (let tweet of data.tweets) {
+            this._socialItems.push(tweet);
+          }
+        }
+      }
+
+      _notifyPresence() {
+        const sub = this._socketSubscription.find(s => s.match(/^stream\/twitter/));
+        this.$.socket.notifyPresence(sub);
+      }
+
+      _nextTweet() {
+        var index = 0;
+
+        if (!isNaN(this._currentItemIndex)) {
+          index = this._currentItemIndex + 1;
+          if (!this._socialItems[index]) {
+            index = 0;
+          }
+        }
+
+        this._currentItemIndex = index;
+        const item = this._socialItems[index];
+        if (item) {
+          this.$.container.innerHTML = item.text;
+        }
       }
 
       _twitterSearchChanged(search, socketConnected) {
         if (search && socketConnected) {
+          this._currentItemIndex = null;
+          this._socialItems = [];
+
           let type;
           let value;
 

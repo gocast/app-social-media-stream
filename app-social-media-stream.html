@@ -111,7 +111,7 @@
 
           <paper-spinner-lite class="header-toolbar__spinner" active="[[loading]]"></paper-spinner-lite>
 
-          <button class="btn btn--primary" disabled="{{_isDataSaved}}">
+          <button class="btn btn--primary" disabled="{{computeCanSave(_isDataSaved, _saving)}}" on-click="_updateContent">
             <touch-item>Guardar cambios</touch-item>
           </button>
         </div>
@@ -386,6 +386,7 @@
           this._isDataSaved = false;
           // Prevent user from changing search too often (rate limit)
           this._canUpdateSearch = false;
+          this._updateContent();
           setTimeout(_ => this._canUpdateSearch = true, 5000);
         }
       }
@@ -403,6 +404,10 @@
 
       _computeAppVisible(visible, data) {
         return data && visible;
+      }
+
+      computeCanSave(_isDataSaved, _saving) {
+        return !_isDataSaved && !_saving;
       }
 
       _computePreviewBackground(backgroundColor) {
