@@ -1,8 +1,5 @@
 <link rel="import" href="../polymer/polymer-element.html">
-<link rel="import" href="../moment-import/moment-with-locales.html">
-<link rel="import" href="../moment-import/moment-timezone.html">
-<link rel="import" href="../analog-clock/analog-clock.html">
-<link rel="import" href="../fitted-text/fitted-text.html">
+<link rel="import" href="app-social-media-stream-player-slide.html">
 
 <dom-module id="app-social-media-stream-player">
   <template>
@@ -25,14 +22,10 @@
         signal-name="gocast"
         subscriptions="[[_socketSubscription]]"></goc-socket>
 
-    <div id="container">
-      
-    </div>
-
   </template>
   <script>
 
-    class AppInstagramWallPlayer extends Polymer.Element {
+    class AppSocialMediaStreamPlayer extends Polymer.Element {
 
       static get is() {return 'app-social-media-stream-player';}
 
@@ -51,13 +44,9 @@
 
           data: Object,
 
-          _socialItems: {
-            type: Array,
-            value: _ => [],
-          },
-
-          _currentItemIndex: {
-            type: Number,
+          _currentSlide: {
+            type: Object,
+            observer: '_currentSlideChanged',
           },
 
           _socketSubscription: {
@@ -70,6 +59,11 @@
           },
 
           _identityId: String,
+
+          _currentTwitterSearch: {
+            type: String,
+            observers: '_currentTwitterSearchChanged',
+          },
 
           // instagramClientId: {
           //   type: String,
@@ -87,21 +81,36 @@
 
       constructor() {
         super();
+        this._currentItemIndex = null;
+        this._nextTweetInterval = null;
+        this._socialItemsKeys = new Map();
+        this._socialItems = [];
         this._nextTweet = this._nextTweet.bind(this);
       }
 
       connectedCallback() {
         super.connectedCallback();
-        setInterval(this._nextTweet, 4000);
+        this._play();
       }
 
       disconnectedCallback() {
         super.disconnectedCallback();
+        this._stop();
+      }
+
+      _play() {
+        this._nextTweet();
+        clearInterval(this._nextTweetInterval);
+        this._nextTweetInterval = setInterval(this._nextTweet, 8000);
+      }
+
+      _stop() {
+        clearInterval(this._nextTweetInterval);
       }
 
       _onMessageReceived(event) {
         const {data, topic} = event.detail;
-        console.log('MESSAGE_RECEIVED', {data, topic})
+        // console.log('MESSAGE_RECEIVED', {data, topic})
 
         // backend requested presence notification
         if (topic === 'presence/stream/twitter') {
@@ -110,38 +119,45 @@
 
         if (topic.match(/stream\/twitter\/.*/)) {
           for (let tweet of data.tweets) {
-            this._socialItems.push(tweet);
+            // Skip duplicates
+            if (!this._socialItemsKeys.get(tweet.text)) {
+              this._socialItems.push(tweet);
+              this._socialItemsKeys.set(tweet.text, true);
+
+              // If this is the first tweet start play
+              if (this._socialItems.length === 1) {
+                this._play();
+              }
+            }
+          }
+
+          // Remove the oldest items keeping only 50
+          if (this._socialItems.length > 50) {
+            this._socialItems.splice(0, this._socialItems.length - 50);
           }
         }
       }
 
-      _notifyPresence() {
-        const sub = this._socketSubscription.find(s => s.match(/^stream\/twitter/));
-        this.$.socket.notifyPresence(sub);
+      _dataChanged(changes) {
+        if (changes.path === 'data') {
+          if (!changes.value) {
+            this.data = Object.assign({}, this._defaultData);
+          }
+        } else {
+          this.notifyPath(changes.path);
+        }
       }
 
-      _nextTweet() {
-        var index = 0;
-
-        if (!isNaN(this._currentItemIndex)) {
-          index = this._currentItemIndex + 1;
-          if (!this._socialItems[index]) {
-            index = 0;
-          }
-        }
-
-        this._currentItemIndex = index;
-        const item = this._socialItems[index];
-        if (item) {
-          this.$.container.innerHTML = item.text;
+      _currentTwitterSearchChanged(currentTwitterSearch, old) {
+        if (currentTwitterSearch !== old) {
+          this._socialItems.splice(0);
+          this._socialItemsKeys.clear();
+          this._currentItemIndex = null;
         }
       }
 
       _twitterSearchChanged(search, socketConnected) {
         if (search && socketConnected) {
-          this._currentItemIndex = null;
-          this._socialItems = [];
-
           let type;
           let value;
 
@@ -160,20 +176,62 @@
           }
 
           this._socketSubscription = [
-            `stream/twitter/${type}/${value}`,
             `${this._identityId}/stream/twitter/${type}/${value}`,
+            `stream/twitter/${type}/${value}`,
             `presence/stream/twitter`,
           ];
         }
       }
 
-      _dataChanged(changes) {
-        if (changes.path === 'data') {
-          if (!changes.value) {
-            this.data = Object.assign({}, this._defaultData);
+      _currentSlideChanged(currentSlide, oldSlide) {
+        if (oldSlide) {
+          const slideout = oldSlide.animate([{
+              opacity: '1',
+            }, {
+              opacity:'0',
+            }
+          ], {duration: 300,});
+          slideout.onfinish = _ => oldSlide.remove();
+        }
+
+        if (currentSlide) {
+          currentSlide.animate([{
+              opacity: '0',
+            }, {
+              opacity:'1',
+            }
+          ], {duration: 300,});
+        }
+      }
+
+      _notifyPresence() {
+        const sub = this._socketSubscription.find(s => s.match(/^stream\/twitter/));
+        this.$.socket.notifyPresence(sub);
+      }
+
+      _nextTweet() {
+        var index = 0;
+
+        if (!isNaN(this._currentItemIndex)) {
+          index = this._currentItemIndex + 1;
+          if (!this._socialItems[index]) {
+            index = 0;
           }
-        } else {
-          this.notifyPath(changes.path);
+        }
+
+        if (index === 0 && this._currentItemIndex === index) {
+          return;
+        }
+
+        const item = this._socialItems[index];
+
+        if (item) {
+          const slideEl = document.createElement('app-social-media-stream-player-slide');
+          slideEl.slide = item;
+          slideEl.search = this.data.twitter.search;
+          this._currentItemIndex = index;
+          this._currentSlide = slideEl;
+          this.shadowRoot.appendChild(slideEl);
         }
       }
 
@@ -185,7 +243,7 @@
 
     }
 
-    customElements.define(AppInstagramWallPlayer.is, AppInstagramWallPlayer);
+    customElements.define(AppSocialMediaStreamPlayer.is, AppSocialMediaStreamPlayer);
 
   </script>
 </dom-module>

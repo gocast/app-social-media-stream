@@ -12,7 +12,7 @@
     "moment-import": "git@github.com:sharedlabs/moment-import.git#^0.1.0",
     "paper-spinner": "PolymerElements/paper-spinner#2.0-preview",
     "paper-toggle-button": "PolymerElements/paper-toggle-button#2.0-preview",
-    "polymer": "git@github.com:Polymer/polymer#v2.0.0-rc.2",
+    "polymer": "git@github.com:Polymer/polymer#v2.0.0-rc.3",
     "touch-item": "git@github.com:sharedlabs/touch-item.git#^0.1.0"
   },
   "devDependencies": {
@@ -21,7 +21,7 @@
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
   },
   "resolutions": {
-    "polymer": "v2.0.0-rc.2",
+    "polymer": "v2.0.0-rc.3",
     "iron-selector": "2.0-preview",
     "webcomponentsjs": "v1",
     "paper-styles": "2.0-preview",
