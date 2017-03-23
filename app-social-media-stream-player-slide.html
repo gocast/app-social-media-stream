@@ -11,6 +11,7 @@
         left: 0;
         width: 100%;
         height: 100%;
+        font-size: 24px;
       }
 
       #container {
@@ -42,23 +43,23 @@
         left: 0;
         right: 0;
         z-index: 1;
-        padding: 100px 35px 35px 35px;
+        padding: 4em 1.4em 1.4em 1.4em;
         color: #fff;
         background: linear-gradient(to top, rgba(0,0,0,1) 20%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.1) 90%, rgba(0,0,0,0) 100%);
       }
 
       .comment__username {
-        font-size: 24px;
+        font-size: 1em;
         margin-right: 5px;
         font-weight: 700;
       }
 
       .comment__screenname {
-        font-size: 24px;
+        font-size: 1em;
       }
 
       .comment__text {
-        font-size: 28px;
+        font-size: 0.85em;
         margin: 5px 0 0 0;
       }
 
@@ -66,36 +67,15 @@
         justify-content: flex-end;
         align-items: center;
         display: flex;
-        font-size: 37px;
+        font-size: 1.54em;
         font-weight: 700;
         margin-top: 20px;
       }
 
       #providerLogo {
-        width: 44px;
-        height: 44px;
+        width: 1.8em;
+        height: 1.8em;
         margin-right: 10px;
-      }
-
-      :host(.small) .comment__text {
-        font-size: 17px;
-      }
-
-      :host(.small) .comment__username {
-        font-size: 15px;
-      }
-
-      :host(.small) .comment__screenname {
-        font-size: 15px;
-      }
-
-      :host(.small) .comment__search {
-        font-size: 23px;
-      }
-
-      :host(.small) #providerLogo {
-        width: 30px;
-        height: 30px;
       }
     </style>
 
@@ -151,18 +131,58 @@
         };
       }
 
-      connectedCallback() {
-        super.connectedCallback();
-        this._resizeText();
+
+      constructor() {
+        super();
+        this._onWindowResize = this._onWindowResize.bind(this);
+        this._resizeImage = this._resizeImage.bind(this);
+        this._resizeImageTimeout = null;
       }
 
-      _resizeText() {
+      connectedCallback() {
+        super.connectedCallback();
+        Polymer.RenderStatus.afterNextRender(null, _ => {
+          window.addEventListener('resize', this._onWindowResize);
+          this._resizeText();
+        });
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('resize', this._onWindowResize);
+      }
+
+      _onWindowResize() {
+        Polymer.RenderStatus.afterNextRender(null, _ => {
+          this._resizeText();
+          // Resize offthread-image
+          clearTimeout(this._resizeImageTimeout);
+          this._resizeImageTimeout = setTimeout(this._resizeImage, 170);
+        });
+      }
+
+      _resizeText({delay=32}={}) {
         const width = this.getBoundingClientRect().width;
-        if (width < 720) {
-          this.classList.add('small');
-        } else if (width < 1024) {
-          this.classList.add('medium');
+
+        if (width === 0) {
+          setTimeout(_ => this._resizeText({delay: delay+32}), delay);
+        } else {
+          if (width < 400) {
+            this.style.fontSize = '13px';
+          } else if (width < 720) {
+            this.style.fontSize = '18px';
+          } else if (width < 1024) {
+            this.style.fontSize = '24px';
+          } else {
+            this.style.fontSize = '27px';
+          }
         }
+      }
+
+      _resizeImage() {
+        const offthreadImage = this.shadowRoot.querySelector('offthread-image');
+        offthreadImage._imageBitmapChanged(offthreadImage._imageBitmap,
+          offthreadImage._isAttached);
       }
 
       _slideChanged(slide) {
