@@ -25,6 +25,7 @@
 
       .container-bottom #text {
         bottom: 0;
+        position: absolute;
       }
 
       #image {
@@ -41,40 +42,60 @@
         left: 0;
         right: 0;
         z-index: 1;
-        padding: 100px 30px 30px 30px;
+        padding: 100px 35px 35px 35px;
         color: #fff;
         background: linear-gradient(to top, rgba(0,0,0,1) 20%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.1) 90%, rgba(0,0,0,0) 100%);
-
       }
 
       .comment__username {
-        font-size: 2vh;
+        font-size: 24px;
         margin-right: 5px;
         font-weight: 700;
       }
 
       .comment__screenname {
-        font-size: 2vh;
+        font-size: 24px;
       }
 
       .comment__text {
-        font-size: 3vh;
-        margin: 0;
+        font-size: 28px;
+        margin: 5px 0 0 0;
       }
 
       .comment__search {
         justify-content: flex-end;
         align-items: center;
         display: flex;
-        font-size: 5vh;
+        font-size: 37px;
         font-weight: 700;
         margin-top: 20px;
       }
 
       #providerLogo {
-        width: 62px;
-        height: 62px;
+        width: 44px;
+        height: 44px;
         margin-right: 10px;
+      }
+
+      :host(.small) .comment__text {
+        font-size: 17px;
+      }
+
+      :host(.small) .comment__username {
+        font-size: 15px;
+      }
+
+      :host(.small) .comment__screenname {
+        font-size: 15px;
+      }
+
+      :host(.small) .comment__search {
+        font-size: 23px;
+      }
+
+      :host(.small) #providerLogo {
+        width: 30px;
+        height: 30px;
       }
     </style>
 
@@ -130,8 +151,18 @@
         };
       }
 
-      constructor() {
-        super();
+      connectedCallback() {
+        super.connectedCallback();
+        this._resizeText();
+      }
+
+      _resizeText() {
+        const width = this.getBoundingClientRect().width;
+        if (width < 720) {
+          this.classList.add('small');
+        } else if (width < 1024) {
+          this.classList.add('medium');
+        }
       }
 
       _slideChanged(slide) {

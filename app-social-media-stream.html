@@ -32,7 +32,7 @@
         margin-bottom: 30px;
       }
 
-      @media(min-width: 640px) {
+      @media(min-width: 760px) {
         .row {
           @apply --layout-horizontal;
           margin-bottom: 20px;
@@ -112,7 +112,7 @@
           <paper-spinner-lite class="header-toolbar__spinner" active="[[loading]]"></paper-spinner-lite>
 
           <button class="btn btn--primary" disabled="{{computeCanSave(_isDataSaved, _saving)}}" on-click="_updateContent">
-            <touch-item>Guardar cambios</touch-item>
+            <touch-item>[[localize('Header.Button.Save')]]</touch-item>
           </button>
         </div>
       </div>
@@ -121,9 +121,9 @@
         <!-- <template> -->
 
       <div class="header-layout__content">
-        <div class="row">
+<!--         <div class="row">
           <h1>Configuración</h1>
-        </div>
+        </div> -->
 
         <div class="row">
 
@@ -135,7 +135,7 @@
 
           <div class="col col--last">
             <div class="box">
-              <iron-selector
+<!--               <iron-selector
                   class="box__tabs"
                   selected="{{selectedTab}}"
                   attr-for-selected="name"
@@ -146,35 +146,33 @@
                   <touch-item
                       name="style"
                       class="box__tab-item">[[localize('TabMenu.Style')]]</touch-item>
-              </iron-selector>
+              </iron-selector> -->
 
-
+<!-- 
               <iron-selector
                   class="pages"
                   selected="{{selectedTab}}"
-                  attr-for-selected="name">
+                  attr-for-selected="name"> -->
 
                 <div class="form" name="twitter">
-                  <p>
-                    Filtra por @usuario, #hashtag o texto
-                  </p>
+                  <p>[[localize('Configuration.Search.Text')]]</p>
 
                   <div class="form__item form__item--last">
-                    <div class="form__label">Buśqueda</div>
+                    <div class="form__label">[[localize('Configuration.Search.Label')]]</div>
 
                     <input
                         name="search"
                         class="form__input"
                         value="[[data.twitter.search]]"
-                        placeholder="Texto de búsqueda">
+                        placeholder="[[localize('Configuration.Search.Placeholder')]]">
                   </div>
 
                   <button class="btn btn--primary" disabled="{{!_canUpdateSearch}}" on-click="_updateSearch">
-                    <touch-item>Actualizar</touch-item>
+                    <touch-item>[[localize('Configuration.Search.Button.Update')]]</touch-item>
                   </button>
                 </div>
 
-                <div class="form" name="style">
+             <!--    <div class="form" name="style">
 
                   <div class="form__item">
                     <div class="form__label">Mostrar texto de búsqueda</div>
@@ -246,16 +244,16 @@
                         disabled="[[!data.showDigitalClock]]"></paper-toggle-button>
                   </div>
 
-                </div>
+                </div> -->
 
-              </iron-selector>
+              <!-- </iron-selector> -->
             </div>
           </div>
         </div>
 
-        <div class="row">
+<!--         <div class="row">
           <h1>Cola de entradas</h1>
-        </div>
+        </div> -->
       </div>
 
         <!-- </template> -->
@@ -333,12 +331,22 @@
             value: _ => {
               return {
                 "en": {
-                  "TabMenu.Twitter": "Twitter",
+                  "Configuration.Search.Button.Update": "Update",
+                  "Configuration.Search.Label": "Search",
+                  "Configuration.Search.Placeholder": "Text serach",
+                  "Configuration.Search.Text": "Filter by @user, #hashtag o text",
+                  "Header.Button.Save": "Save changes",
                   "TabMenu.Style": "View style",
+                  "TabMenu.Twitter": "Twitter",
                 },
                 "es": {
-                  "TabMenu.Twitter": "Twitter",
+                  "Configuration.Search.Button.Update": "Actualizar",
+                  "Configuration.Search.Label": "Búsqueda",
+                  "Configuration.Search.Placeholder": "Texto de búsqueda",
+                  "Configuration.Search.Text": "Filtra por @usuario, #hashtag o texto",
+                  "Header.Button.Save": "Guardar cambios",
                   "TabMenu.Style": "Opciones de visualización",
+                  "TabMenu.Twitter": "Twitter",
                 }
               };
             }

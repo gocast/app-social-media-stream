@@ -75,7 +75,7 @@
       static get observers() {
         return [
           '_dataChanged(data.*)',
-          '_twitterSearchChanged(data.twitter.search, _socketConnected)',
+          '_twitterSearchChanged(data.twitter.search, _socketConnected, _identityId)',
         ]
       }
 
@@ -101,7 +101,7 @@
       _play() {
         this._nextTweet();
         clearInterval(this._nextTweetInterval);
-        this._nextTweetInterval = setInterval(this._nextTweet, 8000);
+        this._nextTweetInterval = setInterval(this._nextTweet, 2000000);
       }
 
       _stop() {
@@ -156,8 +156,8 @@
         }
       }
 
-      _twitterSearchChanged(search, socketConnected) {
-        if (search && socketConnected) {
+      _twitterSearchChanged(search, socketConnected, identityId) {
+        if (search && socketConnected && identityId) {
           let type;
           let value;
 
@@ -176,7 +176,7 @@
           }
 
           this._socketSubscription = [
-            `${this._identityId}/stream/twitter/${type}/${value}`,
+            `${identityId}/stream/twitter/${type}/${value}`,
             `stream/twitter/${type}/${value}`,
             `presence/stream/twitter`,
           ];
